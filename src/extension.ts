@@ -29,13 +29,13 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('autoimpl.helloWorld', () => {
+	let disposable = vscode.commands.registerCommand('autoimpl.generateInterfaceStub', () => {
 		// The code you place here will be executed every time your command is executed
 
 		const quickPick = vscode.window.createQuickPick();
 		quickPick.items = [];
 		quickPick.onDidChangeValue(value => {
-			console.log(value);
+			console.log("onDidChangeValue ", value);
 			quickPick.busy = true;
 			vscode.commands.executeCommand<vscode.SymbolInformation[]>("vscode.executeWorkspaceSymbolProvider", value).then(
 				symbols => {
@@ -54,18 +54,28 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 		quickPick.onDidChangeSelection(selections => {
+			console.log("onDidChangeSelection ", selections);
 			const item = selections[0];
 			if (item instanceof InterfaceItem) {
+				console.info(item);
 				const command = "impl 'this *Demo' " + item.package + "." + item.name;
 				cp.exec(command, { cwd: vscode.workspace.workspaceFolders === undefined ? "" : vscode.workspace.workspaceFolders[0].uri.path },
 					(err, out) => {
 						if (err) {
-							console.error(err);
+							const message = command + "\n" + err.message;
+							vscode.window.showErrorMessage(message);
+							return;
 						}
-						console.log("got: ", out);
+						const message = command;
+						vscode.window.showInformationMessage(message);
 					});
 			}
 		});
+
+		quickPick.onDidAccept(object => {
+			console.log("onDidAccpect ", object);
+		});
+
 		quickPick.show();
 	});
 	context.subscriptions.push(disposable);

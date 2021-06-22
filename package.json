@@ -1,5 +1,10 @@
 {
 	"name": "autoimpl",
+	"publisher": "kakaxi",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/day-dreams/autoimpl.git"
+	},
 	"displayName": "autoimpl",
 	"description": "auto generate golang impl stub in vscode",
 	"version": "0.0.1",
@@ -10,14 +15,20 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:autoimpl.helloWorld"
+		"onCommand:autoimpl.generateInterfaceStub"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "autoimpl.helloWorld",
-				"title": "Hello World"
+				"command": "autoimpl.generateInterfaceStub",
+				"title": "Pick interface and generate stub"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "autoimpl.generateInterfaceStub",
+				"mac": "cmd+i"
 			}
 		]
 	},
