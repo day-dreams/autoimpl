@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as cp from "child_process";
+import * as lodash from "lodash";
 import { stdout } from 'process';
 
 class InterfaceItem implements vscode.QuickPickItem {
@@ -33,9 +34,9 @@ export function activate(context: vscode.ExtensionContext) {
 		// The code you place here will be executed every time your command is executed
 
 		const quickPick = vscode.window.createQuickPick();
-		quickPick.items = [];
-		quickPick.onDidChangeValue(value => {
-			console.log("onDidChangeValue ", value);
+
+		let handle = lodash.debounce(function name(value: string) {
+			console.debug("onDidChangeValue ", value);
 			quickPick.busy = true;
 			vscode.commands.executeCommand<vscode.SymbolInformation[]>("vscode.executeWorkspaceSymbolProvider", value).then(
 				symbols => {
@@ -51,14 +52,17 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			);
 			quickPick.busy = false;
-		});
+		}, 300);
+
+		quickPick.onDidChangeValue(handle);
 
 		quickPick.onDidChangeSelection(selections => {
-			console.log("onDidChangeSelection ", selections);
+			console.debug("onDidChangeSelection ", selections);
 			const item = selections[0];
 			if (item instanceof InterfaceItem) {
 				console.info(item);
-				const command = "impl 'this *Demo' " + item.package + "." + item.name;
+				const command = "impl 'ReceiverName__ *Receiver__' " + item.package + "." + item.name;
+				console.info(command);
 				cp.exec(command, { cwd: vscode.workspace.workspaceFolders === undefined ? "" : vscode.workspace.workspaceFolders[0].uri.path },
 					(err, out) => {
 						if (err) {
@@ -66,8 +70,18 @@ export function activate(context: vscode.ExtensionContext) {
 							vscode.window.showErrorMessage(message);
 							return;
 						}
+						// debounce
+
 						const message = command;
 						vscode.window.showInformationMessage(message);
+						const editor = vscode.window.activeTextEditor;
+
+						let stub = "\n" + out + "\n";
+						stub = stub.replace("(ReceiverName__ * Receiver__)", "($0 *$1)");
+						stub = stub.replace(new RegExp("ReceiverName__", 'g'), '${0:r}');
+						stub = stub.replace(new RegExp("Receiver__", 'g'), '${1:receiver}');
+						let snippet = new vscode.SnippetString(stub);
+						editor?.insertSnippet(snippet);
 					});
 			}
 		});
