@@ -7,7 +7,7 @@
 	},
 	"displayName": "autoimpl",
 	"description": "auto generate golang impl stub in vscode",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"engines": {
 		"vscode": "^1.57.0"
 	},
